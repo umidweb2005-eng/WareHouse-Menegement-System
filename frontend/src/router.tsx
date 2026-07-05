@@ -4,6 +4,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { RoleRoute } from "@/components/RoleRoute"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { LoginPage } from "@/features/auth/LoginPage"
+import { CategoriesPage } from "@/features/categories/CategoriesPage"
 import { DashboardPage } from "@/features/dashboard/DashboardPage"
 import { NotFoundPage } from "@/features/misc/NotFoundPage"
 
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
           {
             element: <RoleRoute permission="dashboard.view" />,
             children: [{ path: "dashboard", element: <DashboardPage /> }],
+          },
+          {
+            element: <RoleRoute permission="category.view" />,
+            children: [{ path: "categories", element: <CategoriesPage /> }],
           },
         ],
       },

@@ -46,7 +46,7 @@ export const NAV_GROUPS: NavGroup[] = [
     title: "Katalog",
     items: [
       { label: "Mahsulotlar", path: "/products", icon: Package, permission: "product.view", enabled: false },
-      { label: "Kategoriyalar", path: "/categories", icon: FolderTree, permission: "category.view", enabled: false },
+      { label: "Kategoriyalar", path: "/categories", icon: FolderTree, permission: "category.view", enabled: true },
       { label: "Birliklar", path: "/units", icon: Ruler, permission: "unit.view", enabled: false },
     ],
   },

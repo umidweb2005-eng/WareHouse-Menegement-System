@@ -60,3 +60,20 @@ export interface ApiError {
   message: string
   fieldErrors?: Record<string, string>
 }
+
+
+// --- Categories ---
+export interface Category {
+  id: number
+  name: string
+  description: string | null
+  is_active: boolean
+  created_at: string
+}
+
+/** Payload for creating/updating a category (CategoryCreate / CategoryUpdate). */
+export interface CategoryInput {
+  name: string
+  description?: string | null
+  is_active: boolean
+}
