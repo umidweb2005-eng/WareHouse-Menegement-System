@@ -77,3 +77,19 @@ export interface CategoryInput {
   description?: string | null
   is_active: boolean
 }
+
+
+// --- Units ---
+export interface Unit {
+  id: number
+  name: string
+  short_name: string
+  is_active: boolean
+}
+
+/** Payload for creating/updating a unit (UnitCreate / UnitUpdate). */
+export interface UnitInput {
+  name: string
+  short_name: string
+  is_active: boolean
+}
