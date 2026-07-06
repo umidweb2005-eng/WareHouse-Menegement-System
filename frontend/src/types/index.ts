@@ -116,3 +116,42 @@ export interface SupplierInput {
   description?: string | null
   is_active: boolean
 }
+
+
+// --- Products ---
+export interface Product {
+  id: number
+  name: string
+  sku: string
+  barcode: string | null
+  category_id: number
+  unit_id: number
+  // Decimal values are serialized as strings by the backend.
+  purchase_price: string
+  sale_price: string
+  min_quantity: string
+  quantity: string
+  image: string | null
+  is_low_stock: boolean
+  description: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  category: Category | null
+  unit: Unit | null
+}
+
+/** Payload for creating/updating a product. `quantity` is create-only. */
+export interface ProductInput {
+  name: string
+  sku: string
+  barcode: string | null
+  category_id: number
+  unit_id: number
+  purchase_price: number
+  sale_price: number
+  min_quantity: number
+  description: string | null
+  is_active: boolean
+  quantity?: number
+}

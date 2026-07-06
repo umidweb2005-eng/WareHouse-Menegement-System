@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/layout/AppLayout"
 import { LoginPage } from "@/features/auth/LoginPage"
 import { CategoriesPage } from "@/features/categories/CategoriesPage"
 import { DashboardPage } from "@/features/dashboard/DashboardPage"
+import { ProductsPage } from "@/features/products/ProductsPage"
 import { SuppliersPage } from "@/features/suppliers/SuppliersPage"
 import { UnitsPage } from "@/features/units/UnitsPage"
 import { NotFoundPage } from "@/features/misc/NotFoundPage"
@@ -37,6 +38,10 @@ export const router = createBrowserRouter([
           {
             element: <RoleRoute permission="supplier.view" />,
             children: [{ path: "suppliers", element: <SuppliersPage /> }],
+          },
+          {
+            element: <RoleRoute permission="product.view" />,
+            children: [{ path: "products", element: <ProductsPage /> }],
           },
         ],
       },
