@@ -53,7 +53,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Kontragentlar",
     items: [
-      { label: "Yetkazib beruvchilar", path: "/suppliers", icon: Truck, permission: "supplier.view", enabled: false },
+      { label: "Yetkazib beruvchilar", path: "/suppliers", icon: Truck, permission: "supplier.view", enabled: true },
       { label: "Mijozlar", path: "/customers", icon: Users, permission: "customer.view", enabled: false },
     ],
   },

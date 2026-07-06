@@ -93,3 +93,26 @@ export interface UnitInput {
   short_name: string
   is_active: boolean
 }
+
+
+// --- Suppliers ---
+export interface Supplier {
+  id: number
+  name: string
+  phone: string | null
+  address: string | null
+  responsible_person: string | null
+  description: string | null
+  is_active: boolean
+  created_at: string
+}
+
+/** Payload for creating/updating a supplier (SupplierCreate / SupplierUpdate). */
+export interface SupplierInput {
+  name: string
+  phone?: string | null
+  address?: string | null
+  responsible_person?: string | null
+  description?: string | null
+  is_active: boolean
+}

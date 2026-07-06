@@ -16,4 +16,9 @@ export const queryKeys = {
     list: (params: ListParams) => ["units", "list", params] as const,
     detail: (id: number) => ["units", "detail", id] as const,
   },
+  suppliers: {
+    all: ["suppliers"] as const,
+    list: (params: ListParams) => ["suppliers", "list", params] as const,
+    detail: (id: number) => ["suppliers", "detail", id] as const,
+  },
 }
