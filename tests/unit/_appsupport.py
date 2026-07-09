@@ -24,6 +24,7 @@ from donation_bot.adapters.inmemory import (
 )
 from donation_bot.application.access.register_staff import RegisterStaff
 from donation_bot.application.audit.query_audit_log import QueryAuditLog
+from donation_bot.application.ledger.list_recent_entries import ListRecentEntries
 from donation_bot.application.annotations.add_annotation import AddAnnotation
 from donation_bot.application.annotations.redact_annotation import RedactAnnotation
 from donation_bot.application.donations.record_donation import RecordDonation
@@ -90,6 +91,7 @@ def build(
         record_donation=RecordDonation(factory, clock, ids, settings),
         record_expense=RecordExpense(factory, clock, ids, settings, read_model),
         reverse_entry=ReverseEntry(factory, clock, ids),
+        list_recent_entries=ListRecentEntries(read_model),
         add_annotation=AddAnnotation(factory, clock, ids),
         redact_annotation=RedactAnnotation(factory, clock),
         register_staff=RegisterStaff(factory, clock, ids),

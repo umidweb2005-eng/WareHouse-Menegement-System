@@ -27,6 +27,7 @@ from donation_bot.application.audit.query_audit_log import QueryAuditLog
 from donation_bot.application.bootstrap import ensure_seed
 from donation_bot.application.donations.record_donation import RecordDonation
 from donation_bot.application.expenses.record_expense import RecordExpense
+from donation_bot.application.ledger.list_recent_entries import ListRecentEntries
 from donation_bot.application.ledger.reverse_entry import ReverseEntry
 from donation_bot.application.ports.clock import Clock
 from donation_bot.application.ports.ids import IdGenerator
@@ -58,6 +59,7 @@ class Container:
     record_donation: RecordDonation
     record_expense: RecordExpense
     reverse_entry: ReverseEntry
+    list_recent_entries: ListRecentEntries
     add_annotation: AddAnnotation
     redact_annotation: RedactAnnotation
     register_staff: RegisterStaff
@@ -107,6 +109,7 @@ def build_container(settings: Settings) -> Container:
         record_donation=RecordDonation(factory, clock, ids, settings_provider),
         record_expense=RecordExpense(factory, clock, ids, settings_provider, read_model),
         reverse_entry=ReverseEntry(factory, clock, ids),
+        list_recent_entries=ListRecentEntries(read_model),
         add_annotation=AddAnnotation(factory, clock, ids),
         redact_annotation=RedactAnnotation(factory, clock),
         register_staff=RegisterStaff(factory, clock, ids),

@@ -20,11 +20,11 @@ def _l(key: str) -> str:
 
 # Main menu
 DONATE = _l("menu.donate")
-REPORTS = _l("menu.reports")
 STATISTICS = _l("menu.statistics")
-ABOUT = _l("menu.about")
+REPORTS = _l("menu.reports")
 RECORD_DONATION = _l("menu.record_donation")
 RECORD_EXPENSE = _l("menu.record_expense")
+RECENT_ENTRIES = _l("menu.recent_entries")
 MANAGE_STAFF = _l("menu.manage_staff")
 CONFIGURE_ACCOUNT = _l("menu.configure_account")
 AUDIT_LOG = _l("menu.audit_log")

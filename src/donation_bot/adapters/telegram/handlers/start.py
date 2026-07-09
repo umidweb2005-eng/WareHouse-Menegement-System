@@ -1,9 +1,10 @@
-"""/start handler: greet and render the role-appropriate main menu."""
+"""/start: greet and show the role-appropriate main menu in a single message."""
 
 from __future__ import annotations
 
 from aiogram import Router
 from aiogram.filters import CommandStart
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from donation_bot.adapters.telegram.keyboards import main_menu
@@ -15,11 +16,10 @@ router = Router(name="start")
 
 
 @router.message(CommandStart())
-async def cmd_start(message: Message, actor: StaffUser | None, tr: Translator) -> None:
+async def cmd_start(message: Message, state: FSMContext, actor: StaffUser | None, tr: Translator) -> None:
+    await state.clear()  # /start always resets any in-progress flow
     if actor is None:
-        await message.answer(tr.t("start.greeting.public"))
+        text = tr.t("start.greeting.public")
     else:
-        await message.answer(
-            tr.t("start.greeting.staff", name=actor.display_name or "", role=role_label(actor, tr))
-        )
-    await message.answer(tr.t("menu.hint"), reply_markup=main_menu(actor, tr))
+        text = tr.t("start.greeting.staff", name=actor.display_name or "", role=role_label(actor, tr))
+    await message.answer(text, reply_markup=main_menu(actor, tr))

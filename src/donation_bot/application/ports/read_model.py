@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from donation_bot.application.reports.models import ExpenseLine, LedgerTotals
+from donation_bot.application.reports.models import EntrySummary, ExpenseLine, LedgerTotals
 from donation_bot.domain.time import Period
 
 
@@ -21,3 +21,10 @@ class LedgerReadModel(ABC):
     @abstractmethod
     def expense_lines(self, period: Period | None) -> tuple[ExpenseLine, ...]:
         """Public expense usage lines over ``period`` (active, i.e., not reversed)."""
+
+    @abstractmethod
+    def recent_entries(self, limit: int = 15) -> tuple[EntrySummary, ...]:
+        """Most recent original entries (newest first), with a reversed flag.
+
+        Staff-only view (individual entries); never exposed to public users.
+        """

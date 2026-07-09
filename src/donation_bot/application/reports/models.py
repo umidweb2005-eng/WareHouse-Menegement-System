@@ -49,6 +49,18 @@ class PeriodReport:
 
 
 @dataclass(frozen=True, slots=True)
+class EntrySummary:
+    """A single ledger entry for the staff "recent entries" list (staff-only)."""
+
+    reference_no: int
+    kind: str  # EntryKind value: "donation" | "expense"
+    amount: Money
+    event_at: datetime
+    is_reversed: bool
+    description: str | None = None  # public usage description for expenses
+
+
+@dataclass(frozen=True, slots=True)
 class Statistics:
     """Daily / monthly / yearly / all-time snapshot, generated at a point in time."""
 

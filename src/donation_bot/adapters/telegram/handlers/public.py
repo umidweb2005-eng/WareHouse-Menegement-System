@@ -1,6 +1,6 @@
-"""Public handlers: donation info / account, about, statistics, reports.
+"""Public handlers: donation info / account, statistics, reports.
 
-All are read-only and available to everyone (the use cases treat these as public).
+All read-only and available to everyone (the use cases treat these as public).
 Menu-entry handlers use ``StateFilter(None)`` so they never interfere with an
 active treasurer/admin flow.
 """
@@ -13,7 +13,6 @@ from aiogram.types import Message
 
 from donation_bot.adapters.telegram import labels
 from donation_bot.adapters.telegram.formatting import (
-    format_about,
     format_donation_info,
     format_report,
     format_statistics,
@@ -32,11 +31,6 @@ router = Router(name="public")
 async def show_donate(message: Message, container: Container, actor: StaffUser | None, tr: Translator) -> None:
     account = container.get_active_account.execute(actor=actor)
     await message.answer(format_donation_info(account, tr), reply_markup=main_menu(actor, tr))
-
-
-@router.message(StateFilter(None), F.text == labels.ABOUT)
-async def show_about(message: Message, actor: StaffUser | None, tr: Translator) -> None:
-    await message.answer(format_about(tr), reply_markup=main_menu(actor, tr))
 
 
 @router.message(StateFilter(None), F.text == labels.STATISTICS)

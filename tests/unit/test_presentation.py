@@ -48,22 +48,31 @@ class MenuTests(unittest.TestCase):
 
     def test_public_sees_only_public_sections(self) -> None:
         sections = main_sections(None)
-        self.assertEqual(
-            sections,
-            [Section.DONATE, Section.REPORTS, Section.STATISTICS, Section.ABOUT],
-        )
+        self.assertEqual(sections, [Section.DONATE, Section.STATISTICS, Section.REPORTS])
 
-    def test_treasurer_sees_recording_sections(self) -> None:
+    def test_treasurer_sees_recording_and_recent_sections(self) -> None:
         sections = main_sections(self.ctx.treasurer)
         self.assertIn(Section.RECORD_DONATION, sections)
         self.assertIn(Section.RECORD_EXPENSE, sections)
+        self.assertIn(Section.RECENT_ENTRIES, sections)
         self.assertNotIn(Section.MANAGE_STAFF, sections)
 
-    def test_admin_sees_governance_sections(self) -> None:
-        sections = main_sections(self.ctx.admin)
-        self.assertIn(Section.MANAGE_STAFF, sections)
-        self.assertIn(Section.CONFIGURE_ACCOUNT, sections)
-        self.assertIn(Section.AUDIT_LOG, sections)
+    def test_admin_menu_matches_spec_order(self) -> None:
+        # Full admin menu, in the exact display order (rendered two per row).
+        self.assertEqual(
+            main_sections(self.ctx.admin),
+            [
+                Section.DONATE,
+                Section.STATISTICS,
+                Section.REPORTS,
+                Section.RECORD_DONATION,
+                Section.RECORD_EXPENSE,
+                Section.RECENT_ENTRIES,
+                Section.MANAGE_STAFF,
+                Section.CONFIGURE_ACCOUNT,
+                Section.AUDIT_LOG,
+            ],
+        )
 
     def test_every_section_has_a_label_key(self) -> None:
         for section in Section:
@@ -155,11 +164,6 @@ class FormattingTests(unittest.TestCase):
         text = format_donation_info(None, self.tr)
         self.assertIn(self.tr.t("account.none"), text)
         self.assertIn(self.tr.t("donate.privacy"), text)
-
-    def test_about(self) -> None:
-        from donation_bot.adapters.telegram.formatting import format_about
-
-        self.assertIn("Anonim xayriya", format_about(self.tr))
 
     def test_donation_confirmation(self) -> None:
         from donation_bot.adapters.telegram.formatting import format_donation_confirmation

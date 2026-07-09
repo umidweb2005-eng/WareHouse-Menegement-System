@@ -8,9 +8,10 @@ here; the core always works in integer minor units.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from zoneinfo import ZoneInfo
 
 from donation_bot.application.audit.models import AuditEntry
-from donation_bot.application.reports.models import PeriodReport, Statistics
+from donation_bot.application.reports.models import EntrySummary, PeriodReport, Statistics
 from donation_bot.domain.accounts.entities import DonationAccount
 from donation_bot.domain.ledger.entities import DonationSource
 from donation_bot.domain.money import Money
@@ -109,8 +110,40 @@ def format_donation_info(account: DonationAccount | None, translator: Translator
     )
 
 
-def format_about(translator: Translator) -> str:
-    return translator.t("about.text")
+def format_recent_entries(
+    entries: Sequence[EntrySummary], translator: Translator, org_timezone: str
+) -> str:
+    """Staff-only recent-entries list, dates shown in the organization time zone."""
+    if not entries:
+        return translator.t("recent.title") + "\n" + translator.t("recent.empty")
+    zone = ZoneInfo(org_timezone)
+    lines = [translator.t("recent.title")]
+    for entry in entries:
+        date = entry.event_at.astimezone(zone).strftime("%d.%m.%Y")
+        reversed_mark = translator.t("recent.reversed_mark") if entry.is_reversed else ""
+        amount = format_money(entry.amount, translator)
+        if entry.kind == "donation":
+            lines.append(
+                translator.t(
+                    "recent.line_donation",
+                    ref=entry.reference_no,
+                    amount=amount,
+                    date=date,
+                    reversed=reversed_mark,
+                )
+            )
+        else:
+            lines.append(
+                translator.t(
+                    "recent.line_expense",
+                    ref=entry.reference_no,
+                    amount=amount,
+                    date=date,
+                    desc=entry.description or "",
+                    reversed=reversed_mark,
+                )
+            )
+    return "\n".join(lines)
 
 
 def format_donation_confirmation(

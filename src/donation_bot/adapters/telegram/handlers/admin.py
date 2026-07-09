@@ -1,7 +1,8 @@
 """Super Admin flows: register staff, change the donation account, view audit log.
 
-Guided FSMs; permissions are pre-checked for UX and re-enforced by the use cases.
-Cancellation is handled globally by the nav router.
+Guided FSMs with per-step Back navigation. Cancel (global) aborts to the main
+menu; Back steps to the previous screen (or the main menu from the first step).
+Permissions are pre-checked for UX and re-enforced by the use cases.
 """
 
 from __future__ import annotations
@@ -15,10 +16,10 @@ from donation_bot.adapters.telegram import labels
 from donation_bot.adapters.telegram.formatting import format_audit
 from donation_bot.adapters.telegram.keyboards import (
     account_type_menu,
-    cancel_menu,
+    form_menu,
     main_menu,
+    note_menu,
     role_menu,
-    skip_cancel_menu,
 )
 from donation_bot.adapters.telegram.states import ConfigureAccountFSM, RegisterStaffFSM
 from donation_bot.application.access.register_staff import RegisterStaffCommand
@@ -49,27 +50,50 @@ def _can(actor: StaffUser | None, permission: Permission) -> bool:
     return actor is not None and actor.has_permission(permission)
 
 
+async def _to_menu(message: Message, state: FSMContext, actor: StaffUser | None, tr: Translator) -> None:
+    await state.clear()
+    await message.answer(tr.t("menu.title"), reply_markup=main_menu(actor, tr))
+
+
 # --------------------------------------------------------------------------- #
 # Register staff
 # --------------------------------------------------------------------------- #
+async def _s_id(message: Message, state: FSMContext, tr: Translator) -> None:
+    await state.set_state(RegisterStaffFSM.telegram_id)
+    await message.answer(tr.t("staff.ask_telegram_id"), reply_markup=form_menu(tr))
+
+
+async def _s_role(message: Message, state: FSMContext, tr: Translator) -> None:
+    await state.set_state(RegisterStaffFSM.role)
+    await message.answer(tr.t("staff.ask_role"), reply_markup=role_menu(tr))
+
+
 @router.message(StateFilter(None), F.text == labels.MANAGE_STAFF)
 async def staff_start(message: Message, state: FSMContext, actor: StaffUser | None, tr: Translator) -> None:
     if not _can(actor, Permission.USER_MANAGE):
         await message.answer(tr.t("error.permission_denied"), reply_markup=main_menu(actor, tr))
         return
-    await state.set_state(RegisterStaffFSM.telegram_id)
-    await message.answer(tr.t("staff.ask_telegram_id"), reply_markup=cancel_menu(tr))
+    await _s_id(message, state, tr)
+
+
+@router.message(RegisterStaffFSM.telegram_id, F.text == labels.BACK)
+async def staff_id_back(message: Message, state: FSMContext, actor: StaffUser | None, tr: Translator) -> None:
+    await _to_menu(message, state, actor, tr)
 
 
 @router.message(RegisterStaffFSM.telegram_id)
 async def staff_telegram_id(message: Message, state: FSMContext, tr: Translator) -> None:
     text = (message.text or "").strip()
     if not text.isdigit():
-        await message.answer(tr.t("staff.invalid_id"), reply_markup=cancel_menu(tr))
+        await message.answer(tr.t("staff.invalid_id"), reply_markup=form_menu(tr))
         return
     await state.update_data(telegram_id=int(text))
-    await state.set_state(RegisterStaffFSM.role)
-    await message.answer(tr.t("staff.ask_role"), reply_markup=role_menu(tr))
+    await _s_role(message, state, tr)
+
+
+@router.message(RegisterStaffFSM.role, F.text == labels.BACK)
+async def staff_role_back(message: Message, state: FSMContext, tr: Translator) -> None:
+    await _s_id(message, state, tr)
 
 
 @router.message(RegisterStaffFSM.role, F.text.in_({labels.ROLE_TREASURER, labels.ROLE_ADMIN}))
@@ -104,32 +128,59 @@ async def staff_role_retry(message: Message, tr: Translator) -> None:
 # --------------------------------------------------------------------------- #
 # Change donation account
 # --------------------------------------------------------------------------- #
+async def _a_label(message: Message, state: FSMContext, tr: Translator) -> None:
+    await state.set_state(ConfigureAccountFSM.label)
+    await message.answer(tr.t("account.ask_label"), reply_markup=form_menu(tr))
+
+
+async def _a_type(message: Message, state: FSMContext, tr: Translator) -> None:
+    await state.set_state(ConfigureAccountFSM.account_type)
+    await message.answer(tr.t("account.ask_type"), reply_markup=account_type_menu(tr))
+
+
+async def _a_value(message: Message, state: FSMContext, tr: Translator) -> None:
+    await state.set_state(ConfigureAccountFSM.value)
+    await message.answer(tr.t("account.ask_value"), reply_markup=form_menu(tr))
+
+
+async def _a_holder(message: Message, state: FSMContext, tr: Translator) -> None:
+    await state.set_state(ConfigureAccountFSM.holder)
+    await message.answer(tr.t("account.ask_holder"), reply_markup=note_menu(tr))
+
+
 @router.message(StateFilter(None), F.text == labels.CONFIGURE_ACCOUNT)
 async def account_start(message: Message, state: FSMContext, actor: StaffUser | None, tr: Translator) -> None:
     if not _can(actor, Permission.ACCOUNT_MANAGE):
         await message.answer(tr.t("error.permission_denied"), reply_markup=main_menu(actor, tr))
         return
-    await state.set_state(ConfigureAccountFSM.label)
-    await message.answer(tr.t("account.ask_label"), reply_markup=cancel_menu(tr))
+    await _a_label(message, state, tr)
+
+
+@router.message(ConfigureAccountFSM.label, F.text == labels.BACK)
+async def account_label_back(message: Message, state: FSMContext, actor: StaffUser | None, tr: Translator) -> None:
+    await _to_menu(message, state, actor, tr)
 
 
 @router.message(ConfigureAccountFSM.label)
 async def account_label(message: Message, state: FSMContext, tr: Translator) -> None:
     label = (message.text or "").strip()
     if not label:
-        await message.answer(tr.t("error.empty_text"), reply_markup=cancel_menu(tr))
+        await message.answer(tr.t("error.empty_text"), reply_markup=form_menu(tr))
         return
     await state.update_data(label=label)
-    await state.set_state(ConfigureAccountFSM.account_type)
-    await message.answer(tr.t("account.ask_type"), reply_markup=account_type_menu(tr))
+    await _a_type(message, state, tr)
+
+
+@router.message(ConfigureAccountFSM.account_type, F.text == labels.BACK)
+async def account_type_back(message: Message, state: FSMContext, tr: Translator) -> None:
+    await _a_label(message, state, tr)
 
 
 @router.message(ConfigureAccountFSM.account_type, F.text.in_(set(_ACCOUNT_TYPE_BY_LABEL)))
 async def account_type(message: Message, state: FSMContext, tr: Translator) -> None:
     chosen = _ACCOUNT_TYPE_BY_LABEL[message.text or ""]
     await state.update_data(account_type=chosen.value)
-    await state.set_state(ConfigureAccountFSM.value)
-    await message.answer(tr.t("account.ask_value"), reply_markup=cancel_menu(tr))
+    await _a_value(message, state, tr)
 
 
 @router.message(ConfigureAccountFSM.account_type)
@@ -137,15 +188,19 @@ async def account_type_retry(message: Message, tr: Translator) -> None:
     await message.answer(tr.t("account.ask_type"), reply_markup=account_type_menu(tr))
 
 
+@router.message(ConfigureAccountFSM.value, F.text == labels.BACK)
+async def account_value_back(message: Message, state: FSMContext, tr: Translator) -> None:
+    await _a_type(message, state, tr)
+
+
 @router.message(ConfigureAccountFSM.value)
 async def account_value(message: Message, state: FSMContext, tr: Translator) -> None:
     value = (message.text or "").strip()
     if not value:
-        await message.answer(tr.t("error.empty_text"), reply_markup=cancel_menu(tr))
+        await message.answer(tr.t("error.empty_text"), reply_markup=form_menu(tr))
         return
     await state.update_data(value=value)
-    await state.set_state(ConfigureAccountFSM.holder)
-    await message.answer(tr.t("account.ask_holder"), reply_markup=skip_cancel_menu(tr))
+    await _a_holder(message, state, tr)
 
 
 async def _finish_account(message: Message, state: FSMContext, container: Container, actor: StaffUser | None, tr: Translator, holder: str | None) -> None:
@@ -167,6 +222,11 @@ async def _finish_account(message: Message, state: FSMContext, container: Contai
         await message.answer(tr.t("error.generic"), reply_markup=main_menu(actor, tr))
         return
     await message.answer(tr.t("account.updated"), reply_markup=main_menu(actor, tr))
+
+
+@router.message(ConfigureAccountFSM.holder, F.text == labels.BACK)
+async def account_holder_back(message: Message, state: FSMContext, tr: Translator) -> None:
+    await _a_value(message, state, tr)
 
 
 @router.message(ConfigureAccountFSM.holder, F.text == labels.SKIP)

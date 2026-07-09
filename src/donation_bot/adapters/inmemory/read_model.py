@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from donation_bot.adapters.inmemory.store import InMemoryStore
 from donation_bot.application.ports.read_model import LedgerReadModel
-from donation_bot.application.reports.models import ExpenseLine, LedgerTotals
+from donation_bot.application.reports.models import EntrySummary, ExpenseLine, LedgerTotals
 from donation_bot.domain.ledger.entities import EntryKind, LedgerEntry
 from donation_bot.domain.money import UZS, Money
 from donation_bot.domain.time import Period
@@ -62,3 +62,24 @@ class InMemoryLedgerReadModel(LedgerReadModel):
             )
         lines.sort(key=lambda line: line.reference_no)
         return tuple(lines)
+
+    def recent_entries(self, limit: int = 15) -> tuple[EntrySummary, ...]:
+        originals = sorted(
+            self._store.entries.values(),
+            key=lambda e: e.reference_no or 0,
+            reverse=True,  # newest first
+        )
+        summaries: list[EntrySummary] = []
+        for entry in originals[:limit]:
+            assert entry.reference_no is not None
+            summaries.append(
+                EntrySummary(
+                    reference_no=entry.reference_no,
+                    kind=entry.kind.value,
+                    amount=entry.amount,
+                    event_at=entry.event_at,
+                    is_reversed=entry.entry_id in self._store.reversed_original_ids,
+                    description=entry.expense_description,
+                )
+            )
+        return tuple(summaries)
