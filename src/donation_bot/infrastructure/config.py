@@ -15,6 +15,7 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 
 # Public re-exports
 __all__ = [
@@ -28,7 +29,79 @@ __all__ = [
     "BackupConfig",
     "Settings",
     "load_settings",
+    "parse_dotenv",
+    "load_dotenv",
 ]
+
+
+# ---------------------------------------------------------------------------
+# .env support (dependency-free)
+#
+# In local development we automatically load a ``.env`` file so operators don't
+# have to export variables by hand. Real environment variables always take
+# precedence over ``.env`` values (we only fill in what is missing), so
+# ``KEY=... python -m donation_bot`` still overrides the file.
+# ---------------------------------------------------------------------------
+def parse_dotenv(text: str) -> dict[str, str]:
+    """Parse ``.env`` file contents into a mapping.
+
+    Supports ``KEY=VALUE``, ``export KEY=VALUE``, blank/``#`` comment lines,
+    surrounding single/double quotes, and inline ``#`` comments after unquoted
+    values (a ``#`` preceded by whitespace). Quote your value if it must contain
+    a literal ``#`` or leading/trailing spaces.
+    """
+    result: dict[str, str] = {}
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export "):].lstrip()
+        if "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        if not key.isidentifier():
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            value = value[1:-1]  # quoted: keep contents verbatim
+        else:
+            value = _strip_inline_comment(value).rstrip()
+        result[key] = value
+    return result
+
+
+def _strip_inline_comment(value: str) -> str:
+    for i, ch in enumerate(value):
+        if ch == "#" and (i == 0 or value[i - 1] in " \t"):
+            return value[:i]
+    return value
+
+
+def _find_dotenv(path: str | os.PathLike[str]) -> Path | None:
+    candidate = Path(path)
+    if candidate.is_absolute():
+        return candidate if candidate.exists() else None
+    # Search the current directory and its parents (like a project root lookup).
+    for base in (Path.cwd(), *Path.cwd().parents):
+        found = base / candidate
+        if found.exists():
+            return found
+    return None
+
+
+def load_dotenv(path: str | os.PathLike[str] = ".env") -> bool:
+    """Load ``.env`` into ``os.environ`` without overriding existing variables.
+
+    Returns True if a file was found and applied. Missing file is a no-op.
+    """
+    found = _find_dotenv(path)
+    if found is None:
+        return False
+    for key, value in parse_dotenv(found.read_text(encoding="utf-8")).items():
+        os.environ.setdefault(key, value)  # existing env vars win
+    return True
 
 
 class ConfigError(Exception):
@@ -180,8 +253,16 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
 
     Raises :class:`ConfigError` listing every problem if anything is missing or
     invalid.
+
+    When ``env`` is not provided, a ``.env`` file (if present) is loaded into the
+    process environment first, so ``python -m donation_bot`` works immediately
+    after creating a valid ``.env``. Explicit ``env`` mappings (used in tests) skip
+    ``.env`` loading entirely to stay hermetic.
     """
-    loader = _Loader(os.environ if env is None else env)
+    if env is None:
+        load_dotenv()
+        env = os.environ
+    loader = _Loader(env)
 
     app = AppConfig(
         env=AppEnv(loader.enum("APP_ENV", AppEnv, AppEnv.PRODUCTION)),
