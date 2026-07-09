@@ -10,7 +10,9 @@ from __future__ import annotations
 from donation_bot.adapters.inmemory.repositories import (
     InMemoryAnnotationRepository,
     InMemoryAuditLogRepository,
+    InMemoryDonationAccountRepository,
     InMemoryLedgerRepository,
+    InMemoryStaffRepository,
 )
 from donation_bot.adapters.inmemory.store import InMemoryStore, _Snapshot
 from donation_bot.application.ports.unit_of_work import UnitOfWork
@@ -22,6 +24,8 @@ class InMemoryUnitOfWork(UnitOfWork):
         self.ledger = InMemoryLedgerRepository(store)
         self.annotations = InMemoryAnnotationRepository(store)
         self.audit = InMemoryAuditLogRepository(store)
+        self.staff = InMemoryStaffRepository(store)
+        self.accounts = InMemoryDonationAccountRepository(store)
         self._snapshot: _Snapshot | None = None
 
     def __enter__(self) -> "InMemoryUnitOfWork":

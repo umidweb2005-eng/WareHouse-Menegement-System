@@ -11,7 +11,9 @@ from donation_bot.adapters.inmemory.read_model import InMemoryLedgerReadModel
 from donation_bot.adapters.inmemory.repositories import (
     InMemoryAnnotationRepository,
     InMemoryAuditLogRepository,
+    InMemoryDonationAccountRepository,
     InMemoryLedgerRepository,
+    InMemoryStaffRepository,
 )
 from donation_bot.adapters.inmemory.settings import StaticSettingsProvider
 from donation_bot.adapters.inmemory.store import InMemoryStore
@@ -24,6 +26,8 @@ __all__ = [
     "InMemoryLedgerRepository",
     "InMemoryAnnotationRepository",
     "InMemoryAuditLogRepository",
+    "InMemoryStaffRepository",
+    "InMemoryDonationAccountRepository",
     "StaticSettingsProvider",
     "InMemoryStore",
     "InMemoryUnitOfWork",

@@ -28,6 +28,10 @@ class AnnotationNotFoundError(ApplicationError):
     """Raised when a referenced annotation does not exist."""
 
 
+class StaffAlreadyRegisteredError(ApplicationError):
+    """Raised when registering a Telegram ID that is already a staff member."""
+
+
 class AlreadyReversedError(ApplicationError):
     """Raised when reversing an entry that already has a reversal (BR-L3)."""
 

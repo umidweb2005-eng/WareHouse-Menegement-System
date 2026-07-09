@@ -13,7 +13,9 @@ from types import TracebackType
 from donation_bot.application.ports.repositories import (
     AnnotationRepository,
     AuditLogRepository,
+    DonationAccountRepository,
     LedgerRepository,
+    StaffRepository,
 )
 
 
@@ -21,6 +23,8 @@ class UnitOfWork(ABC):
     ledger: LedgerRepository
     annotations: AnnotationRepository
     audit: AuditLogRepository
+    staff: StaffRepository
+    accounts: DonationAccountRepository
 
     def __enter__(self) -> "UnitOfWork":
         return self

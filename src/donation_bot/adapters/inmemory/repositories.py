@@ -9,8 +9,12 @@ from donation_bot.application.audit.models import AuditEntry
 from donation_bot.application.ports.repositories import (
     AnnotationRepository,
     AuditLogRepository,
+    DonationAccountRepository,
     LedgerRepository,
+    StaffRepository,
 )
+from donation_bot.domain.accounts.entities import DonationAccount
+from donation_bot.domain.access.entities import StaffUser
 from donation_bot.domain.annotations.entities import Annotation
 from donation_bot.domain.ledger.entities import LedgerEntry, Reversal
 
@@ -82,3 +86,36 @@ class InMemoryAuditLogRepository(AuditLogRepository):
         stored = entry if entry.audit_id else replace(entry, audit_id=self._store.next_audit_id())
         self._store.audit.append(stored)
         return stored
+
+
+class InMemoryStaffRepository(StaffRepository):
+    def __init__(self, store: InMemoryStore) -> None:
+        self._store = store
+
+    def get_by_telegram_id(self, telegram_id: int) -> StaffUser | None:
+        user_id = self._store.staff_by_telegram.get(telegram_id)
+        return self._store.staff.get(user_id) if user_id is not None else None
+
+    def get(self, user_id: str) -> StaffUser | None:
+        return self._store.staff.get(user_id)
+
+    def add(self, staff: StaffUser) -> StaffUser:
+        self._store.staff[staff.user_id] = staff
+        if staff.telegram_id is not None:
+            self._store.staff_by_telegram[staff.telegram_id] = staff.user_id
+        return staff
+
+    def list_active(self) -> tuple[StaffUser, ...]:
+        return tuple(s for s in self._store.staff.values() if s.is_active and not s.is_system)
+
+
+class InMemoryDonationAccountRepository(DonationAccountRepository):
+    def __init__(self, store: InMemoryStore) -> None:
+        self._store = store
+
+    def active(self) -> DonationAccount | None:
+        return self._store.accounts[-1] if self._store.accounts else None
+
+    def add(self, account: DonationAccount) -> DonationAccount:
+        self._store.accounts.append(account)
+        return account

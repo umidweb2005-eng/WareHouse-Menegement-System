@@ -18,6 +18,9 @@ EXPENSE_RECORDED = "expense.recorded"
 ENTRY_REVERSED = "entry.reversed"
 ANNOTATION_ADDED = "annotation.added"
 ANNOTATION_REDACTED = "annotation.redacted"
+STAFF_REGISTERED = "staff.registered"
+STAFF_SEEDED = "staff.seeded"
+ACCOUNT_CONFIGURED = "account.configured"
 
 
 @dataclass(frozen=True, slots=True)

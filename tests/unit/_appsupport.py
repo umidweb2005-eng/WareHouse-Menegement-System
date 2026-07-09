@@ -11,14 +11,17 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 
 from donation_bot.adapters.inmemory import (
+    InMemoryDonationAccountRepository,
     InMemoryLedgerReadModel,
     InMemoryLedgerRepository,
+    InMemoryStaffRepository,
     InMemoryStore,
     ManualClock,
     SequentialIdGenerator,
     StaticSettingsProvider,
     uow_factory,
 )
+from donation_bot.application.access.register_staff import RegisterStaff
 from donation_bot.application.annotations.add_annotation import AddAnnotation
 from donation_bot.application.annotations.redact_annotation import RedactAnnotation
 from donation_bot.application.donations.record_donation import RecordDonation
@@ -26,6 +29,10 @@ from donation_bot.application.expenses.record_expense import RecordExpense
 from donation_bot.application.ledger.reverse_entry import ReverseEntry
 from donation_bot.application.ports.settings import LedgerLimits
 from donation_bot.application.reports.service import ReportService
+from donation_bot.application.settings.configure_account import (
+    ConfigureDonationAccount,
+    GetActiveDonationAccount,
+)
 from donation_bot.domain.access.entities import (
     SUPER_ADMIN_ROLE,
     TREASURER_ROLE,
@@ -73,12 +80,17 @@ def build(
         read_model=read_model,
         uow_factory=factory,
         ledger_repo=InMemoryLedgerRepository(store),
+        staff_repo=InMemoryStaffRepository(store),
+        account_repo=InMemoryDonationAccountRepository(store),
         # use cases
         record_donation=RecordDonation(factory, clock, ids, settings),
         record_expense=RecordExpense(factory, clock, ids, settings, read_model),
         reverse_entry=ReverseEntry(factory, clock, ids),
         add_annotation=AddAnnotation(factory, clock, ids),
         redact_annotation=RedactAnnotation(factory, clock),
+        register_staff=RegisterStaff(factory, clock, ids),
+        configure_account=ConfigureDonationAccount(factory, clock, ids),
+        get_active_account=GetActiveDonationAccount(InMemoryDonationAccountRepository(store)),
         reports=ReportService(read_model, clock, settings),
         # actors
         treasurer=StaffUser(

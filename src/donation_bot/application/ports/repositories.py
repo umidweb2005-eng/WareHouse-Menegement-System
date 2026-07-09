@@ -11,6 +11,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from donation_bot.application.audit.models import AuditEntry
+from donation_bot.domain.accounts.entities import DonationAccount
+from donation_bot.domain.access.entities import StaffUser
 from donation_bot.domain.annotations.entities import Annotation
 from donation_bot.domain.ledger.entities import LedgerEntry, Reversal
 
@@ -55,3 +57,32 @@ class AuditLogRepository(ABC):
     @abstractmethod
     def add(self, entry: AuditEntry) -> AuditEntry:
         """Append an audit entry, assigning and returning its id."""
+
+
+class StaffRepository(ABC):
+    """Registered operators only (Treasurers, Super Admins, the system actor).
+
+    Public/donor users are never stored here (invariant I1).
+    """
+
+    @abstractmethod
+    def get_by_telegram_id(self, telegram_id: int) -> StaffUser | None: ...
+
+    @abstractmethod
+    def get(self, user_id: str) -> StaffUser | None: ...
+
+    @abstractmethod
+    def add(self, staff: StaffUser) -> StaffUser: ...
+
+    @abstractmethod
+    def list_active(self) -> tuple[StaffUser, ...]: ...
+
+
+class DonationAccountRepository(ABC):
+    @abstractmethod
+    def active(self) -> DonationAccount | None:
+        """The current account (most recently created), or None if never set."""
+
+    @abstractmethod
+    def add(self, account: DonationAccount) -> DonationAccount:
+        """Append a new account row; it becomes the active account."""
