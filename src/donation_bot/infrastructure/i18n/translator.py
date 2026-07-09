@@ -39,14 +39,14 @@ CATALOG: dict[str, dict[str, str]] = {
         "common.unknown": "Tushunmadim 🤔 Iltimos, menyudagi tugmalardan foydalaning.",
         # -- about ------------------------------------------------------------
         "about.text": (
-            "ℹ️ *Anonim xayriya boti*\n\n"
+            "ℹ️ Anonim xayriya boti\n\n"
             "Bu bot ikki tamoyilga asoslanadi:\n"
-            "🔒 *Maxfiylik* — xayriya qiluvchining shaxsi hech qachon saqlanmaydi.\n"
-            "🔍 *Shaffoflik* — har bir xayriya va sarf hisobotlarda ko'rinadi.\n\n"
+            "🔒 Maxfiylik — xayriya qiluvchining shaxsi hech qachon saqlanmaydi.\n"
+            "🔍 Shaffoflik — har bir xayriya va sarf hisobotlarda ko'rinadi.\n\n"
             "Barcha raqamlar yozuvlar asosida hisoblanadi."
         ),
         # -- donate / account -------------------------------------------------
-        "donate.title": "💳 *Xayriya qilish*",
+        "donate.title": "💳 Xayriya qilish",
         "donate.instructions": "Quyidagi hisob raqamiga xayriya qilishingiz mumkin:",
         "donate.privacy": (
             "🔒 Sizning shaxsingiz saqlanmaydi. Barcha mablag'lar shaffof "

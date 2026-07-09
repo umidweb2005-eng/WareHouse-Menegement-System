@@ -135,6 +135,32 @@ class FormattingTests(unittest.TestCase):
         self.assertIn("Main", text)
         self.assertIn("8600...", text)
 
+    def test_donation_info_with_account(self) -> None:
+        from donation_bot.adapters.telegram.formatting import format_donation_info
+
+        acc = DonationAccount(
+            label="Main card",
+            account_type=AccountType.CARD,
+            account_value="8600 0000",
+            created_by="a",
+            created_at=datetime(2026, 5, 1, tzinfo=UTC),
+        )
+        text = format_donation_info(acc, self.tr)
+        self.assertIn("8600 0000", text)
+        self.assertIn(self.tr.t("donate.privacy"), text)
+
+    def test_donation_info_without_account(self) -> None:
+        from donation_bot.adapters.telegram.formatting import format_donation_info
+
+        text = format_donation_info(None, self.tr)
+        self.assertIn(self.tr.t("account.none"), text)
+        self.assertIn(self.tr.t("donate.privacy"), text)
+
+    def test_about(self) -> None:
+        from donation_bot.adapters.telegram.formatting import format_about
+
+        self.assertIn("Anonim xayriya", format_about(self.tr))
+
 
 class ParsingTests(unittest.TestCase):
     def test_parses_grouped_amount(self) -> None:

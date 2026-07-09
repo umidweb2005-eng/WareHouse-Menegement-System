@@ -81,3 +81,19 @@ def format_account(account: DonationAccount | None, translator: Translator) -> s
     if account.holder_name:
         lines.append(translator.t("account.holder", holder=account.holder_name))
     return "\n".join(lines)
+
+
+def format_donation_info(account: DonationAccount | None, translator: Translator) -> str:
+    """The public "how to donate" screen: title, the active account, privacy note."""
+    return "\n\n".join(
+        [
+            translator.t("donate.title"),
+            translator.t("donate.instructions"),
+            format_account(account, translator),
+            translator.t("donate.privacy"),
+        ]
+    )
+
+
+def format_about(translator: Translator) -> str:
+    return translator.t("about.text")
