@@ -14,6 +14,7 @@ from donation_bot.adapters.telegram.formatting import (
     format_report,
     format_statistics,
 )
+from donation_bot.adapters.telegram import labels
 from donation_bot.adapters.telegram.menu import (
     SECTION_LABEL_KEY,
     Section,
@@ -47,7 +48,10 @@ class MenuTests(unittest.TestCase):
 
     def test_public_sees_only_public_sections(self) -> None:
         sections = main_sections(None)
-        self.assertEqual(sections, [Section.DONATE, Section.STATISTICS, Section.REPORTS])
+        self.assertEqual(
+            sections,
+            [Section.DONATE, Section.REPORTS, Section.STATISTICS, Section.ABOUT],
+        )
 
     def test_treasurer_sees_recording_sections(self) -> None:
         sections = main_sections(self.ctx.treasurer)
@@ -64,6 +68,14 @@ class MenuTests(unittest.TestCase):
     def test_every_section_has_a_label_key(self) -> None:
         for section in Section:
             self.assertIn(section, SECTION_LABEL_KEY)
+
+    def test_labels_match_catalog(self) -> None:
+        tr = get_translator("uz")
+        self.assertEqual(labels.DONATE, tr.t("menu.donate"))
+        self.assertEqual(labels.CANCEL, tr.t("common.cancel"))
+        self.assertEqual(labels.REP_TODAY, tr.t("reports.today"))
+        # every visible menu label is routable back to a section label
+        self.assertEqual(labels.RECORD_DONATION, tr.t("menu.record_donation"))
 
 
 class FormattingTests(unittest.TestCase):
