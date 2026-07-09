@@ -87,6 +87,9 @@ class InMemoryAuditLogRepository(AuditLogRepository):
         self._store.audit.append(stored)
         return stored
 
+    def list_recent(self, limit: int = 20) -> tuple[AuditEntry, ...]:
+        return tuple(reversed(self._store.audit[-limit:]))
+
 
 class InMemoryStaffRepository(StaffRepository):
     def __init__(self, store: InMemoryStore) -> None:

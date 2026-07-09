@@ -7,6 +7,9 @@ here; the core always works in integer minor units.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
+from donation_bot.application.audit.models import AuditEntry
 from donation_bot.application.reports.models import PeriodReport, Statistics
 from donation_bot.domain.accounts.entities import DonationAccount
 from donation_bot.domain.ledger.entities import DonationSource
@@ -132,3 +135,26 @@ def format_expense_confirmation(
         desc=description,
     )
     return translator.t("expense.confirm_title") + "\n\n" + summary
+
+
+def _action_label(action: str, translator: Translator) -> str:
+    label = translator.t(f"audit.action.{action}")
+    return action if label.startswith("<") else label  # fall back to raw code
+
+
+def format_audit(entries: Sequence[AuditEntry], translator: Translator) -> str:
+    if not entries:
+        return translator.t("audit.title") + "\n" + translator.t("audit.empty")
+    lines = [translator.t("audit.title")]
+    for entry in entries:
+        ref = f" #{entry.entity_ref}" if entry.entity_ref is not None else ""
+        when = entry.created_at.strftime("%Y-%m-%d %H:%M")  # UTC
+        lines.append(
+            translator.t(
+                "audit.line",
+                time=when,
+                action=_action_label(entry.action, translator),
+                ref=ref,
+            )
+        )
+    return "\n".join(lines)

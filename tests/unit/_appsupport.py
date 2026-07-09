@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 
 from donation_bot.adapters.inmemory import (
+    InMemoryAuditLogRepository,
     InMemoryDonationAccountRepository,
     InMemoryLedgerReadModel,
     InMemoryLedgerRepository,
@@ -22,6 +23,7 @@ from donation_bot.adapters.inmemory import (
     uow_factory,
 )
 from donation_bot.application.access.register_staff import RegisterStaff
+from donation_bot.application.audit.query_audit_log import QueryAuditLog
 from donation_bot.application.annotations.add_annotation import AddAnnotation
 from donation_bot.application.annotations.redact_annotation import RedactAnnotation
 from donation_bot.application.donations.record_donation import RecordDonation
@@ -82,6 +84,8 @@ def build(
         ledger_repo=InMemoryLedgerRepository(store),
         staff_repo=InMemoryStaffRepository(store),
         account_repo=InMemoryDonationAccountRepository(store),
+        audit_repo=InMemoryAuditLogRepository(store),
+        query_audit_log=QueryAuditLog(InMemoryAuditLogRepository(store)),
         # use cases
         record_donation=RecordDonation(factory, clock, ids, settings),
         record_expense=RecordExpense(factory, clock, ids, settings, read_model),

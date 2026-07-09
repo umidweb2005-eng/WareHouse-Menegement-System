@@ -58,6 +58,10 @@ class AuditLogRepository(ABC):
     def add(self, entry: AuditEntry) -> AuditEntry:
         """Append an audit entry, assigning and returning its id."""
 
+    @abstractmethod
+    def list_recent(self, limit: int = 20) -> tuple[AuditEntry, ...]:
+        """Return the most recent audit entries, newest first."""
+
 
 class StaffRepository(ABC):
     """Registered operators only (Treasurers, Super Admins, the system actor).
