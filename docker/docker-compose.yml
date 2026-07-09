@@ -1,0 +1,42 @@
+# Local/production composition for the donation bot.
+# The database is NOT exposed to the host network. Secrets come from an .env file
+# (never committed). See docs/DEPLOYMENT.md and docs/CONFIGURATION.md.
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-donation_bot}
+      # For local dev only. In production the app and migration roles are created
+      # separately with least privilege (see docs/DATABASE_DESIGN.md §11).
+      POSTGRES_USER: ${MIGRATION_DB_USER:-donation_migrator}
+      POSTGRES_PASSWORD: ${MIGRATION_DB_PASSWORD:-change_me}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    depends_on:
+      - db
+    volumes:
+      - backups:/data/backups
+    networks:
+      - internal
+    # In webhook mode a reverse proxy terminates TLS and forwards only the
+    # webhook path to this service. In polling mode no inbound ports are needed.
+
+volumes:
+  pgdata:
+  backups:
+
+networks:
+  internal:
+    driver: bridge

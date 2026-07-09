@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "donation-bot"
+version = "0.1.0"
+description = "Anonymous donation management Telegram bot (Telegram-first, privacy- and transparency-focused)."
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "Proprietary" }
+
+# Runtime dependencies. NOTE: these are the source of truth for the app but are
+# NOT installed in the design/CI sandbox (network is integrations-only). The pure
+# domain layer intentionally has no third-party dependencies so it can be tested
+# without them.
+dependencies = [
+    "aiogram>=3.13,<4",
+    "SQLAlchemy[asyncio]>=2.0,<3",
+    "asyncpg>=0.29",
+    "alembic>=1.13",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "hypothesis>=6.100",
+    "ruff>=0.5",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+donation-bot = "donation_bot.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/donation_bot"]
+
+# ----------------------------------------------------------------------------
+# Tooling
+# ----------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+mypy_path = "src"
+packages = ["donation_bot"]
+warn_unused_ignores = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra"
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+markers = [
+    "unit: pure domain/application tests, no I/O",
+    "integration: tests that require a real PostgreSQL",
+    "e2e: bot-flow tests against a mocked Telegram",
+]
