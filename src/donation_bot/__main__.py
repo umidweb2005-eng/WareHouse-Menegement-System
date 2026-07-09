@@ -1,11 +1,13 @@
-"""Application entrypoint (stub).
+"""Application entrypoint.
 
-Loads configuration and sets up logging. The composition root and Telegram
-adapter are wired in later implementation milestones (see ``docs/ROADMAP.md``);
-until then this only validates that the environment is configured correctly.
+Loads and validates configuration, sets up logging, then runs the Telegram bot
+(in-memory backend for now). The persistence backend is swapped in the composition
+root later without touching handlers or use cases.
 """
 
 from __future__ import annotations
+
+import asyncio
 
 from donation_bot import __version__
 from donation_bot.infrastructure.config import ConfigError, load_settings
@@ -22,11 +24,17 @@ def main() -> int:
 
     configure_logging(settings.app.log_level)
     log = get_logger("donation_bot")
-    log.info("donation-bot %s starting (env=%s)", __version__, settings.app.env.value)
     log.info(
-        "Bot runtime is not wired yet; this milestone provides the project "
-        "skeleton and configuration only. See docs/ROADMAP.md (Phase 3)."
+        "donation-bot %s starting (env=%s, mode=%s)",
+        __version__,
+        settings.app.env.value,
+        settings.telegram.mode.value,
     )
+
+    # Imported lazily so configuration/tests do not require aiogram to be installed.
+    from donation_bot.adapters.telegram.app import run
+
+    asyncio.run(run(settings))
     return 0
 
 
