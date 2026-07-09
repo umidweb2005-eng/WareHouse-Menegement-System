@@ -9,8 +9,19 @@ from __future__ import annotations
 
 from donation_bot.application.reports.models import PeriodReport, Statistics
 from donation_bot.domain.accounts.entities import DonationAccount
+from donation_bot.domain.ledger.entities import DonationSource
 from donation_bot.domain.money import Money
 from donation_bot.infrastructure.i18n.translator import Translator
+
+_SOURCE_KEY: dict[DonationSource, str] = {
+    DonationSource.CASH: "donation.source_cash",
+    DonationSource.BANK_MANUAL: "donation.source_bank",
+    DonationSource.BANK_API: "donation.source_bank",
+}
+
+
+def source_label(source: DonationSource, translator: Translator) -> str:
+    return translator.t(_SOURCE_KEY[source])
 
 
 def format_money(money: Money, translator: Translator) -> str:
@@ -97,3 +108,27 @@ def format_donation_info(account: DonationAccount | None, translator: Translator
 
 def format_about(translator: Translator) -> str:
     return translator.t("about.text")
+
+
+def format_donation_confirmation(
+    amount: Money, source: DonationSource, note: str | None, translator: Translator
+) -> str:
+    summary = translator.t(
+        "donation.summary",
+        amount=format_money(amount, translator),
+        source=source_label(source, translator),
+        note=note if (note and note.strip()) else translator.t("donation.note_none"),
+    )
+    return translator.t("donation.confirm_title") + "\n\n" + summary
+
+
+def format_expense_confirmation(
+    amount: Money, category_name: str, description: str, translator: Translator
+) -> str:
+    summary = translator.t(
+        "expense.summary",
+        amount=format_money(amount, translator),
+        category=category_name,
+        desc=description,
+    )
+    return translator.t("expense.confirm_title") + "\n\n" + summary

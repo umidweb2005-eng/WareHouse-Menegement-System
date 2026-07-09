@@ -9,12 +9,14 @@ class DonationFSM(StatesGroup):
     amount = State()
     source = State()
     note = State()
+    confirm = State()
 
 
 class ExpenseFSM(StatesGroup):
     amount = State()
     category = State()
     description = State()
+    confirm = State()
 
 
 class RegisterStaffFSM(StatesGroup):

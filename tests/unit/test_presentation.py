@@ -161,6 +161,29 @@ class FormattingTests(unittest.TestCase):
 
         self.assertIn("Anonim xayriya", format_about(self.tr))
 
+    def test_donation_confirmation(self) -> None:
+        from donation_bot.adapters.telegram.formatting import format_donation_confirmation
+        from donation_bot.domain.ledger.entities import DonationSource
+
+        text = format_donation_confirmation(Money(500000), DonationSource.CASH, None, self.tr)
+        self.assertIn("5 000 so'm", text)
+        self.assertIn(self.tr.t("donation.source_cash"), text)
+        self.assertIn(self.tr.t("donation.note_none"), text)  # no note -> "yo'q"
+
+        with_note = format_donation_confirmation(
+            Money(500000), DonationSource.BANK_MANUAL, "juma", self.tr
+        )
+        self.assertIn("juma", with_note)
+        self.assertIn(self.tr.t("donation.source_bank"), with_note)
+
+    def test_expense_confirmation(self) -> None:
+        from donation_bot.adapters.telegram.formatting import format_expense_confirmation
+
+        text = format_expense_confirmation(Money(300000), "Kommunal", "Svet uchun", self.tr)
+        self.assertIn("3 000 so'm", text)
+        self.assertIn("Kommunal", text)
+        self.assertIn("Svet uchun", text)
+
 
 class ParsingTests(unittest.TestCase):
     def test_parses_grouped_amount(self) -> None:
